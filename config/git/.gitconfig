@@ -1,0 +1,29 @@
+[include]
+    path = ~/.config/git/local.gitconfig
+[ghq]
+    root = ~/Repositories/src/
+[alias]
+    br = branch
+    co = checkout
+    aa = add -A
+    d = diff
+    dw = diff --color-words
+    co = commit
+    com = commit -m
+    pb = !git branch | peco
+    pl = !git pull origin `git rev-parse --abbrev-ref HEAD`
+    ps = !git push origin `git rev-parse --abbrev-ref HEAD`
+    psf = !git push -f origin `git rev-parse --abbrev-ref HEAD`
+    lg = log --graph --all --decorate --oneline
+    ls = !git --no-pager log -10 --oneline --decorate
+    # st = !echo 'stashes:' && git stash list | grep -F ': WIP on '`git rev-parse --abbrev-ref HEAD`':' | tail -r
+    cp = !git branch -a --sort=-authordate | sed 's/[* ]//' | sed 's remotes/origin/  ' | sed '/HEAD ->/d' | awk '!a[$0]++' | fzf |xargs git checkout 
+    ru = remote update origin
+    unstage = reset HEAD
+    pre-stage = add -N .
+    diff-name = diff --name-only
+[core]
+    excludesfile = ~/.config/git/.gitignore
+    editor = nvim # -u None  # if starts too slow
+# [commit]
+#     template = ~/.config/git/commit_message.txt
