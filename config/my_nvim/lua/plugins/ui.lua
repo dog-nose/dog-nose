@@ -172,6 +172,7 @@ return {
 		event = "VeryLazy",
 		config = function()
 			require("neoscroll").setup({
+				mappings = {'<C-u>', '<C-d>', 'zt', 'zz', 'zb'},
 				-- アニメーション時間の設定（ms）
 				hide_cursor = true, -- スクロール中にカーソルを非表示
 				stop_eof = true, -- EOF で止める
@@ -179,19 +180,6 @@ return {
 				cursor_scrolls_alone = true, -- カーソルが画面の外にあるときだけスクロール
 				easing_function = "sine", -- "quadratic", "cubic", "sine", etc.
 				performance_mode = false, -- パフォーマンス重視モード
-			})
-
-			require("neoscroll.config").set_mappings({
-				-- 以下のキーに対してアニメーション付きスクロールを有効化
-				["<C-u>"] = { "scroll", { "-vim.wo.scroll", "true", "150" } },
-				["<C-d>"] = { "scroll", { "vim.wo.scroll", "true", "150" } },
-				-- ["<C-b>"] = { "scroll", { "-vim.api.nvim_win_get_height(0)", "true", "200" } },
-				-- ["<C-f>"] = { "scroll", { "vim.api.nvim_win_get_height(0)", "true", "200" } },
-				-- ["<C-y>"] = { "scroll", { "-0.10", "false", "100" } },
-				-- ["<C-e>"] = { "scroll", { "0.10", "false", "100" } },
-				["zt"] = { "zt", { "150" } },
-				["zz"] = { "zz", { "150" } },
-				["zb"] = { "zb", { "150" } },
 			})
 		end,
 	},
