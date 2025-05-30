@@ -1,3 +1,21 @@
+# oh-my-zshの初期化
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="bira"
+plugins=(git zsh-completions zsh-syntax-highlighting)
+source $ZSH/oh-my-zsh.sh
+
+## ZSH_THEME="bira"のプロンプト調整
+##  biraテーマが読み込まれた後でないと設定が戻ってしまうため、
+##  source $ZSH/oh-my-zsh.shの後に設定すること
+local date="%{$reset_color%}%D{%Y/%m/%d} %* "
+local user="%B%(!.%{$fg[red]%}.%{$fg[green]%})%n%{$reset_color%} "
+ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg[green]%}"
+ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
+ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[red]%}%{$fg[green]%}"
+ZSH_THEME_GIT_PROMPT_CLEAN="%{$fg[green]%}"
+PROMPT="╭─${conda_prompt}${date}${user}${current_dir}${rvm_ruby}${vcs_branch}${venv_prompt}${kube_prompt}
+╰─%B${user_symbol}%b "
+
 # Mac固有の設定
 if [ "$(uname)" = "Darwin" ]; then
     # tacコマンドをalias
