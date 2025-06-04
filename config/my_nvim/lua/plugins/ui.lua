@@ -9,7 +9,7 @@ return {
 					component_separators = { left = "|", right = "|" },
 					section_separators = { left = "", right = "" },
 					disabled_filetypes = {
-						statusline = {"NvimTree"},
+						statusline = { "NvimTree" },
 						winbar = {},
 					},
 					ignore_focus = {},
@@ -165,6 +165,12 @@ return {
 					vim.b.miniindentscope_disable = true
 				end,
 			})
+			vim.api.nvim_create_autocmd("TermOpen", {
+				pattern = "*",
+				callback = function()
+					vim.b.miniindentscope_disable = true
+				end,
+			})
 		end,
 	},
 	{
@@ -172,7 +178,7 @@ return {
 		event = "VeryLazy",
 		config = function()
 			require("neoscroll").setup({
-				mappings = {'<C-u>', '<C-d>', 'zt', 'zz', 'zb'},
+				mappings = { "<C-u>", "<C-d>", "zt", "zz", "zb" },
 				-- アニメーション時間の設定（ms）
 				hide_cursor = true, -- スクロール中にカーソルを非表示
 				stop_eof = true, -- EOF で止める
