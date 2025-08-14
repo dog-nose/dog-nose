@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # 基本的なセットアップテスト
+  dotfiles-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dotfiles-test
+    environment:
+      - SETUP_WITH_GHQ=false
+      - RUN_INIT=true
+      - RUN_TEST=true
+      - RUN_HEALTH_CHECK=true
+    volumes:
+      - ./scripts:/workspace/scripts
+    command: ["/workspace/scripts/test-setup.sh"]
+
+  # ghqでのクローンをシミュレートするテスト
+  dotfiles-ghq-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dotfiles-ghq-test
+    environment:
+      - SETUP_WITH_GHQ=true
+      - RUN_INIT=true
+      - RUN_TEST=true
+      - RUN_HEALTH_CHECK=true
+    volumes:
+      - ./scripts:/workspace/scripts
+    command: ["/workspace/scripts/test-setup.sh"]
+
+  # インタラクティブなデバッグ環境
+  dotfiles-debug:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dotfiles-debug
+    environment:
+      - SETUP_WITH_GHQ=false
+      - RUN_INIT=false
+      - RUN_TEST=false
+      - RUN_HEALTH_CHECK=false
+    volumes:
+      - ./scripts:/workspace/scripts
+    stdin_open: true
+    tty: true
+    command: ["/bin/bash"]
+
+  # 最小限のテスト（CI用）
+  dotfiles-ci:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dotfiles-ci
+    environment:
+      - SETUP_WITH_GHQ=false
+      - RUN_INIT=true
+      - RUN_TEST=true
+      - RUN_HEALTH_CHECK=false
+    volumes:
+      - ./scripts:/workspace/scripts
+    command: ["make", "test"]
