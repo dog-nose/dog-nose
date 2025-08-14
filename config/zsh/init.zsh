@@ -8,11 +8,12 @@ source $ZSH/oh-my-zsh.sh
 ##  biraテーマが読み込まれた後でないと設定が戻ってしまうため、
 ##  source $ZSH/oh-my-zsh.shの後に設定すること
 local date="%{$reset_color%}%D{%Y/%m/%d} %* "
-local user="%B%(!.%{$fg[red]%}.%{$fg[green]%})%n%{$reset_color%} "
+local user="%B%(!.%{$fg[red]%}.%{$fg[green]%}) %n%{$reset_color%} "
 ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg[green]%}"
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%} "
 ZSH_THEME_GIT_PROMPT_DIRTY="%{$fg[red]%}%{$fg[green]%}"
 ZSH_THEME_GIT_PROMPT_CLEAN="%{$fg[green]%}"
+# local user_symbol='%(!.#.)'
 PROMPT="╭─${conda_prompt}${date}${user}${current_dir}${rvm_ruby}${vcs_branch}${venv_prompt}${kube_prompt}
 ╰─%B${user_symbol}%b "
 

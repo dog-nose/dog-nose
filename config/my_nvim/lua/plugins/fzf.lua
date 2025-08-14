@@ -69,6 +69,7 @@ return {
 			-- { "<leader>fw", "<cmd>FzfLua live_grep<CR>", desc = "Fzf: Grep Words" },
 		},
 		config = function()
+      vim.env.FZF_DEFAULT_OPTS = "--layout=reverse"
 			require("fzf-lua").setup({
 				files = {
 					prompt = "❯",

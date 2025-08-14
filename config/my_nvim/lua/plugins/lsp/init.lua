@@ -93,34 +93,39 @@ return {
 				vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false })
 
 			require("mason").setup()
-			require("mason-lspconfig").setup()
-			require("mason-lspconfig").setup_handlers({
-				function(server_name) -- default handler (optional)
-					local settings = {}
-					if server_name == "lua_ls" then
-						settings = {
-							Lua = {
-								diagnostics = {
-									globals = { "vim" },
-								},
-								-- -- 以下の2つがなぜ必要なのかわからない
-								-- -- 設定するとハイライトが有効になるまで時間がかかったので止めた
-								-- workspace = {
-								--   library = vim.api.nvim_get_runtime_file("", true)
-								-- },
-								-- telemetry = {
-								--   enable = false
-								-- }
-							},
-						}
-					end
-					require("lspconfig")[server_name].setup({
-						on_attach = on_attach,
-						capabilities = capabilities, --cmpを連携⇐ココ！
-						settings = settings,
-					})
-				end,
-			})
+			require("mason-lspconfig").setup( {
+        ensure_installed = { "lua_ls" }
+      })
+      local lspconfig = require("lspconfig")
+      -- サーバーごとの設定
+      local servers = {
+        lua_ls = {
+          settings = {
+            Lua = {
+              diagnostics = {
+                globals = { "vim" },
+              },
+              -- workspace と telemetry を無効にするかは任意（後述）
+              -- workspace = {
+              --   library = vim.api.nvim_get_runtime_file("", true),
+              -- },
+              -- telemetry = {
+              --   enable = false,
+              -- },
+            },
+          },
+        },
+        tsserver = {},
+        pyright = {},
+      }
+
+      -- 各 LSP サーバーを lspconfig で setup
+      for server_name, config in pairs(servers) do
+        config.on_attach = on_attach
+        config.capabilities = capabilities
+        lspconfig[server_name].setup(config)
+      end
+
 		end,
 	},
 }
