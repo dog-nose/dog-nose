@@ -1,7 +1,10 @@
 vim.scriptencoding = "utf-8"
 vim.g.mapleader = " "
 
+if not vim.g.vscode then
 require("config.lazy")
+end
+-- hoge
 
 local options = {
 	syntax = "on",
@@ -38,6 +41,11 @@ local options = {
 for k, v in pairs(options) do
 	vim.opt[k] = v
 end
+
+if vim.g.vscode then
+  return
+end
+
 
 vim.opt.wildignore:append({ "*.pyc", ".git/**", "vendor/**", "bundle/**" })
 
@@ -101,6 +109,7 @@ keymap.set("n", "<Leader><Leader>", "<Cmd>lua vim.lsp.buf.definition()<CR>")
 keymap.set("n", "<Leader>r", "<Cmd>lua vim.lsp.buf.references()<CR>")
 
 keymap.set("n", "tt", "<cmd>Terminal<CR>")
+keymap.set("n", "<leader>m", "<Cmd>Markview Toggle<CR>")
 
 -- terminalを開く時の制御
 local function open_terminal()
@@ -157,4 +166,12 @@ end
 if vim.fn.executable("rg") == 1 then
 	vim.o.grepprg = "rg --vimgrep --hidden"
 	vim.o.grepformat = "%f:%l:%c:%m"
+end
+
+vim.keymap.set("t", "zj", [[<C-\><C-n>]])
+
+-- Hoge
+
+if vim.fn.executable('nvr') == 1 then
+  vim.env.EDITOR = 'nvr -cc split -c "set bufhidden=delete" --remote-wait'
 end
