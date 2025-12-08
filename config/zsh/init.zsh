@@ -7,6 +7,7 @@ source $ZSH/oh-my-zsh.sh
 GHQ_ROOT=$(ghq root | sed -e "s:^$HOME:~:")
 
 alias vim='nvim'
+alias lazy-vim='NVIM_APPNAME=nvim-lazy nvim'
 
 # Resolve GHQ_ROOT to its absolute path
 my_ghq_root=$(eval echo "$GHQ_ROOT")
