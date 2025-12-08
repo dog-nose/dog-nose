@@ -169,9 +169,3 @@ if vim.fn.executable("rg") == 1 then
 end
 
 vim.keymap.set("t", "zj", [[<C-\><C-n>]])
-
--- Hoge
-
-if vim.fn.executable('nvr') == 1 then
-  vim.env.EDITOR = 'nvr -cc split -c "set bufhidden=delete" --remote-wait'
-end
