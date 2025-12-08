@@ -13,25 +13,25 @@ my_ghq_root=$(eval echo "$GHQ_ROOT")
 
 # Function to get the current directory, with ghq root adjusted
 function _get_prompt_pwd() {
-	local current=$(pwd | sed -e "s:^$HOME:~:")
-	local github_root="${GHQ_ROOT}/github.com"
-	if [[ "$current" =~ ^$github_root ]]; then
-		echo $current | perl -pe "s:^$github_root.*?\/: :"
-		return
-	fi
-	if [[ "$current" =~ ^$GHQ_ROOT ]]; then
-		echo $current | perl -pe "s:^$GHQ_ROOT\/:󰊢 :"
-		return
-	fi
-	echo $current | sed -e "s:^~::"
-	# if [ "$current" = "~" ]; then
-	#     echo $current
-	#     return
-	# fi
+    local current=$(pwd | sed -e "s:^$HOME:~:")
+    local github_root="${GHQ_ROOT}/github.com"
+    if [[ "$current" =~ ^$github_root ]]; then
+        echo $current | perl -pe "s:^$github_root.*?\/: :"
+        return
+    fi
+    if [[ "$current" =~ ^$GHQ_ROOT ]]; then
+        echo $current | perl -pe "s:^$GHQ_ROOT\/:󰊢 :"
+        return
+    fi
+    echo $current | sed -e "s:^~::"
+    # if [ "$current" = "~" ]; then
+    #     echo $current
+    #     return
+    # fi
 
-	# local dirname=`dirname $current | sed -e "s:\(\/.\)[^\/]*:\1:g"`
-	# local basename=`basename $current`
-	# echo "$dirname/$basename"
+    # local dirname=`dirname $current | sed -e "s:\(\/.\)[^\/]*:\1:g"`
+    # local basename=`basename $current`
+    # echo "$dirname/$basename"
 }
 
 ## ZSH_THEME="bira"のプロンプト調整
@@ -48,18 +48,18 @@ ZSH_THEME_GIT_PROMPT_CLEAN="%{$fg[green]%}"
 #╭─2025/07/15 11:40:01  yamawaki ~/Repositories/src/github.com.private/dog-nose/dog-nose/config/zsh fix_other_pc
 #╰─$
 #
-#  wonderplanet/BULL_jpn_api
-#   wonderplanet/BULL_jpn_api
-# 󰊢 github.com/Wonderplanet/BULL_jpn_api
+#  owner/repo
+#   owner/repo
+# 󰊢 github.com/
 PROMPT="╭─${conda_prompt}${date}${user}${current_dir}${rvm_ruby}${vcs_branch}${venv_prompt}${kube_prompt}
 ╰─%B${user_symbol}%b "
 
 # Mac固有の設定
 if [ "$(uname)" = "Darwin" ]; then
-	# tacコマンドをalias
-	alias tac="tail -r"
-	# homebrewの自動アップデートを無効
-	export HOMEBREW_NO_AUTO_UPDATE=1
+    # tacコマンドをalias
+    alias tac="tail -r"
+    # homebrewの自動アップデートを無効
+    export HOMEBREW_NO_AUTO_UPDATE=1
 fi
 
 export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
@@ -81,33 +81,26 @@ bindkey '^]' my-source-file-selection
 bindkey '^R' my-history-selection
 
 function my-history-selection() {
-	BUFFER=$(history -n 1 | tac | awk '!a[$0]++' | fzf --no-sort --color 'border:#A3BE8C')
-	CURSOR=$#BUFFER
-	zle reset-prompt
+    BUFFER=$(history -n 1 | tac | awk '!a[$0]++' | fzf --no-sort --color 'border:#A3BE8C')
+    CURSOR=$#BUFFER
+    zle reset-prompt
 }
 
 function my-source-file-selection() {
-	local selected_dir=$(ghq list -p | fzf --color 'border:#D08770')
-	if [ -n "$selected_dir" ]; then
-		BUFFER="cd ${selected_dir}"
-		zle accept-line
-	fi
-	zle clear-screen
+    local selected_dir=$(ghq list -p | fzf --color 'border:#D08770')
+    if [ -n "$selected_dir" ]; then
+        BUFFER="cd ${selected_dir}"
+        zle accept-line
+    fi
+    zle clear-screen
 }
 
 alias Tmux='if tmux has-session -t 0 2>/dev/null; then tmux attach -t 0; else tmux new -s 0; fi'
 
-function job-start() {
-	cd ~/Documents/bull/nippo/
-	tmux new-window -c ~/Repositories/src/github.com/Wonderplanet/BULL_jpn_api
-	tmux new-window -c ~/Repositories/src/github.com/Wonderplanet/BULL_mt
-	tmux new-window -c ~/Repositories/src/github.com/Wonderplanet/BULL_jpn_surveillance
-}
-
 function remote-list() {
-	ssh_host=$(grep -iEh "^Host[[:space:]]" ~/.ssh/config | sed -e 's/Host[[:space:]]\(.*\)/\1/i' | tr ' ' '\n' | grep -v -e '[*?]' -e '^[[:space:]]*$' | fzf --prompt="Host\\> " --query="${*}" --select-1 | xargs -n 1)
-	if [ ! -z "$ssh_host" ]; then
-		echo "Connect " "$ssh_host"
-		ssh "$ssh_host"
-	fi
+    ssh_host=$(grep -iEh "^Host[[:space:]]" ~/.ssh/config | sed -e 's/Host[[:space:]]\(.*\)/\1/i' | tr ' ' '\n' | grep -v -e '[*?]' -e '^[[:space:]]*$' | fzf --prompt="Host\\> " --query="${*}" --select-1 | xargs -n 1)
+    if [ ! -z "$ssh_host" ]; then
+        echo "Connect " "$ssh_host"
+        ssh "$ssh_host"
+    fi
 }
