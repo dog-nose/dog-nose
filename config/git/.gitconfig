@@ -24,6 +24,6 @@
     diff-name = diff --name-only
 [core]
     excludesfile = ~/.config/git/.gitignore
-    editor = nvim # -u None  # if starts too slow
+    editor = nvim
 # [commit]
 #     template = ~/.config/git/commit_message.txt
