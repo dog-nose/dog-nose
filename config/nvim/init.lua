@@ -2,14 +2,14 @@ vim.scriptencoding = "utf-8"
 vim.g.mapleader = " "
 
 if not vim.g.vscode then
-require("config.lazy")
+	require("config.lazy")
 end
 -- hoge
 
 local options = {
 	syntax = "on",
 	number = true,
-	relativenumber = false,
+	relativenumber = true,
 	showcmd = true,
 	cursorline = true,
 	numberwidth = 6,
@@ -35,7 +35,7 @@ local options = {
 	termguicolors = true,
 	signcolumn = "yes:1",
 	compatible = false,
-  scrolloff = 5
+	scrolloff = 5,
 }
 
 for k, v in pairs(options) do
@@ -43,9 +43,8 @@ for k, v in pairs(options) do
 end
 
 if vim.g.vscode then
-  return
+	return
 end
-
 
 vim.opt.wildignore:append({ "*.pyc", ".git/**", "vendor/**", "bundle/**" })
 

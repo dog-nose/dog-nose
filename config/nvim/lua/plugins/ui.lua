@@ -5,7 +5,8 @@ return {
 		config = function()
 			require("lualine").setup({
 				options = {
-					theme = "tokyonight",
+					-- theme = "tokyonight",
+					theme = "kanagawa",
 					component_separators = { left = "|", right = "|" },
 					section_separators = { left = "", right = "" },
 					disabled_filetypes = {
@@ -400,7 +401,7 @@ return {
 								local key = available_keys[i] or tostring(i)
 
 								-- プロジェクトのアイコンを取得
-								local icon = " "  -- デフォルトのフォルダアイコン
+								local icon = " " -- デフォルトのフォルダアイコン
 								if devicons_ok then
 									-- ディレクトリ名からアイコンを取得（拡張子として扱う）
 									local dir_icon = devicons.get_icon(project.name, "", { default = true })
@@ -413,10 +414,13 @@ return {
 								local max_width = 60
 								local name = icon .. " " .. project.name
 								local key_str = string.format("[%s]", key)
-								local spaces = string.rep(" ", math.max(1, max_width - vim.fn.strwidth(name) - vim.fn.strwidth(key_str)))
+								local spaces = string.rep(
+									" ",
+									math.max(1, max_width - vim.fn.strwidth(name) - vim.fn.strwidth(key_str))
+								)
 								table.insert(footer, string.format("   %s%s%s", name, spaces, key_str))
 							end
-							end
+						end
 
 						-- プラグイン情報を取得
 						local lazy_ok, lazy = pcall(require, "lazy")
