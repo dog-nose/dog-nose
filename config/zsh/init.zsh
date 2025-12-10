@@ -105,6 +105,7 @@ function remote-list() {
 
 alias vim='nvim'
 alias lazy-vim='NVIM_APPNAME=nvim-lazy nvim'
+alias lvim='NVIM_APPNAME=nvim-lazy nvim'
 if [[ -n ${EDITOR} ]]; then
     alias vim=${EDITOR}
     alias nvim=${EDITOR}
