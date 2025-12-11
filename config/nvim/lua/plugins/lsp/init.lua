@@ -73,6 +73,7 @@ return {
 		config = function()
 			-- client, bufnrを引数に取るon_attach関数を定義
 			local on_attach = function(client, _)
+				-- Disable LSP formatting in favor of conform.nvim
 				client.server_capabilities.documentFormattingProvider = false
 				local set = vim.keymap.set
 				set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>")
