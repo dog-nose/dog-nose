@@ -46,10 +46,13 @@ return {
 					},
 					lualine_c = {
 						"branch",
-						"diff",
+						{
+							"diff",
+							symbols = { added = " ", modified = " ", removed = " " },
+						},
 						{
 							"diagnostics",
-							symbols = { error = "E", warn = "W", info = "I", hint = "H" },
+							symbols = { Error = "", Warn = "", Hint = "H", Info = "󰋽" },
 						},
 					},
 					lualine_x = { "encoding", "fileformat", "filetype" },

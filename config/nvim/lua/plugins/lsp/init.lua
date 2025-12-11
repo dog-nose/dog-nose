@@ -72,60 +72,88 @@ return {
 		dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig" },
 		config = function()
 			-- client, bufnrを引数に取るon_attach関数を定義
-			local on_attach = function(client, _)
+			local on_attach = function(client, bufnr)
 				-- Disable LSP formatting in favor of conform.nvim
 				client.server_capabilities.documentFormattingProvider = false
 				local set = vim.keymap.set
-				set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>")
-				set("n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>")
-				set("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>")
-				set("n", "gs", "<cmd>lua vim.lsp.buf.signature_help()<CR>")
-				set("n", "gn", "<cmd>lua vim.lsp.buf.rename()<CR>")
-				set("n", "ga", "<cmd>lua vim.lsp.buf.code_action()<CR>")
-				set("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>")
-				set("n", "gx", "<cmd>lua vim.lsp.diagnostic.show_line_diagnostics()<CR>")
-				set("n", "g[", "<cmd>lua vim.lsp.diagnostic.goto_prev()<CR>")
-				set("n", "g]", "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>")
-				set("n", "gf", "<cmd>lua vim.lsp.buf.formatting()<CR>")
+				local opts = { buffer = bufnr, silent = true }
+
+				-- LSP基本機能
+				set("n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>", opts)
+				set("n", "K", "<cmd>lua vim.lsp.buf.hover()<CR>", opts)
+				set("n", "gi", "<cmd>lua vim.lsp.buf.implementation()<CR>", opts)
+				set("n", "gs", "<cmd>lua vim.lsp.buf.signature_help()<CR>", opts)
+				set("n", "gn", "<cmd>lua vim.lsp.buf.rename()<CR>", opts)
+				set("n", "ga", "<cmd>lua vim.lsp.buf.code_action()<CR>", opts)
+				set("n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>", opts)
+				set("n", "gf", "<cmd>lua vim.lsp.buf.format()<CR>", opts)
+
+				-- Diagnostics（エラー詳細表示）
+				set("n", "gl", "<cmd>lua vim.diagnostic.open_float()<CR>", opts) -- カーソル位置のエラー詳細をフロートで表示
+				set("n", "gx", "<cmd>lua vim.diagnostic.open_float()<CR>", opts) -- 既存のgxも残す
+				set("n", "[d", "<cmd>lua vim.diagnostic.goto_prev()<CR>", opts) -- 前のエラーへ移動
+				set("n", "]d", "<cmd>lua vim.diagnostic.goto_next()<CR>", opts) -- 次のエラーへ移動
+				set("n", "g[", "<cmd>lua vim.diagnostic.goto_prev()<CR>", opts) -- 既存のg[も残す
+				set("n", "g]", "<cmd>lua vim.diagnostic.goto_next()<CR>", opts) -- 既存のg]も残す
 			end
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
-			vim.lsp.handlers["textDocument/publishDiagnostics"] =
-				vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false })
+
+			-- Diagnosticsの表示設定
+			vim.diagnostic.config({
+				virtual_text = false, -- 行末にエラーテキストを表示しない（鬱陶しいため）
+				signs = true, -- サイドバーにエラーサインを表示
+				underline = true, -- エラー箇所に下線を表示
+				update_in_insert = false, -- 挿入モード中は更新しない
+				severity_sort = true, -- 重要度順にソート
+				float = {
+					border = "rounded", -- フロートウィンドウの枠を角丸に
+					source = "always", -- エラーのソース（LSPサーバー名など）を表示
+					header = "",
+					prefix = "",
+				},
+			})
+
+			-- Diagnosticsのサインアイコンを設定
+			-- numhlを削除することで行番号のハイライトを防ぐ
+			local signs = { Error = "", Warn = "", Hint = "H", Info = "󰋽" }
+			for type, icon in pairs(signs) do
+				local hl = "DiagnosticSign" .. type
+				vim.fn.sign_define(hl, { text = icon, texthl = hl })
+			end
 
 			require("mason").setup()
-			require("mason-lspconfig").setup( {
-        ensure_installed = { "lua_ls" }
-      })
-      local lspconfig = require("lspconfig")
-      -- サーバーごとの設定
-      local servers = {
-        lua_ls = {
-          settings = {
-            Lua = {
-              diagnostics = {
-                globals = { "vim" },
-              },
-              -- workspace と telemetry を無効にするかは任意（後述）
-              -- workspace = {
-              --   library = vim.api.nvim_get_runtime_file("", true),
-              -- },
-              -- telemetry = {
-              --   enable = false,
-              -- },
-            },
-          },
-        },
-        tsserver = {},
-        pyright = {},
-      }
+			require("mason-lspconfig").setup({
+				ensure_installed = { "lua_ls" },
+			})
+			local lspconfig = require("lspconfig")
+			-- サーバーごとの設定
+			local servers = {
+				lua_ls = {
+					settings = {
+						Lua = {
+							diagnostics = {
+								globals = { "vim" },
+							},
+							-- workspace と telemetry を無効にするかは任意（後述）
+							-- workspace = {
+							--   library = vim.api.nvim_get_runtime_file("", true),
+							-- },
+							-- telemetry = {
+							--   enable = false,
+							-- },
+						},
+					},
+				},
+				tsserver = {},
+				pyright = {},
+			}
 
-      -- 各 LSP サーバーを lspconfig で setup
-      for server_name, config in pairs(servers) do
-        config.on_attach = on_attach
-        config.capabilities = capabilities
-        lspconfig[server_name].setup(config)
-      end
-
+			-- 各 LSP サーバーを lspconfig で setup
+			for server_name, config in pairs(servers) do
+				config.on_attach = on_attach
+				config.capabilities = capabilities
+				lspconfig[server_name].setup(config)
+			end
 		end,
 	},
 }
