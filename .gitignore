@@ -4,3 +4,4 @@ config/iterm2/AppSupport
 config/nvim
 config/github-copilot
 config/gcloud/
+secret/
