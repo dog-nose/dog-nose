@@ -1,4 +1,17 @@
 return {
+	-- lazydev.nvim
+	{
+		"folke/lazydev.nvim",
+		ft = "lua",
+		opts = {
+			library = {
+				{ path = "luvit-meta/library", words = { "vim%.uv" } },
+			},
+		},
+	},
+
+	-- vim.uv の型定義
+	{ "Bilal2453/luvit-meta", lazy = true },
 	-- 補完
 	{
 		"hrsh7th/nvim-cmp", --補完エンジン本体
@@ -69,7 +82,7 @@ return {
 	"williamboman/mason.nvim",
 	{
 		"williamboman/mason-lspconfig.nvim",
-		dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig" },
+		dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig", "folke/lazydev.nvim" },
 		config = function()
 			-- client, bufnrを引数に取るon_attach関数を定義
 			local on_attach = function(client, bufnr)
