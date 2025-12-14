@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: init update test clean backup docker-build docker-test health-check help
+.PHONY: init update test clean backup docker-build docker-test health-check help link-claude-commands
 
 # プラットフォーム検出
 UNAME_S := $(shell uname -s)
@@ -29,15 +29,16 @@ PACKAGE_MANAGER := $(detect_package_manager)
 # デフォルトターゲット
 help:
 	@echo "PC Setup Repository - Available Commands:"
-	@echo "  init         - 初期セットアップ（必要なツールのインストール、設定ファイルのリンク）"
-	@echo "  update       - 更新処理（oh-my-zsh、プラグイン、neovimの更新）"
-	@echo "  test         - 動作確認（zsh、neovim、LSP設定の確認）"
-	@echo "  clean        - 環境クリーンアップ（古いリンクや不要なファイルの削除）"
-	@echo "  backup       - 既存設定のバックアップ作成"
-	@echo "  health-check - 健全性チェック（各ツールのバージョン確認）"
-	@echo "  docker-build - Dockerイメージのビルド"
-	@echo "  docker-test  - Docker環境でのテスト実行"
-	@echo "  help         - このヘルプメッセージを表示"
+	@echo "  init                - 初期セットアップ（必要なツールのインストール、設定ファイルのリンク）"
+	@echo "  update              - 更新処理（oh-my-zsh、プラグイン、neovimの更新）"
+	@echo "  test                - 動作確認（zsh、neovim、LSP設定の確認）"
+	@echo "  clean               - 環境クリーンアップ（古いリンクや不要なファイルの削除）"
+	@echo "  backup              - 既存設定のバックアップ作成"
+	@echo "  health-check        - 健全性チェック（各ツールのバージョン確認）"
+	@echo "  link-claude-commands - Claude Codeコマンドのシンボリックリンク作成"
+	@echo "  docker-build        - Dockerイメージのビルド"
+	@echo "  docker-test         - Docker環境でのテスト実行"
+	@echo "  help                - このヘルプメッセージを表示"
 
 # 初期セットアップ
 init: backup
@@ -45,6 +46,7 @@ init: backup
 	@$(MAKE) install-tools
 	@$(MAKE) install-oh-my-zsh
 	@$(MAKE) link-configs
+	@$(MAKE) link-claude-commands
 	@$(MAKE) install-plugins
 	@echo "=== 初期セットアップ完了 ==="
 
@@ -94,6 +96,13 @@ link-configs:
 		cp $(CURDIR)/template/default.zsh ~/.zshrc; \
 	fi
 	@echo "設定ファイルのリンクが完了しました"
+
+# Claude Codeコマンドのリンク
+link-claude-commands:
+	@echo ">>> Claude Code commands のリンク作成..."
+	@mkdir -p ~/.claude/commands
+	@ln -sf $(CURDIR)/.claude/commands/* ~/.claude/commands/
+	@echo "Claude Code commands のリンクが完了しました"
 
 # プラグインのインストール
 install-plugins:
