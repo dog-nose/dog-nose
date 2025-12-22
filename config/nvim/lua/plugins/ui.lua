@@ -6,7 +6,8 @@ return {
 			require("lualine").setup({
 				options = {
 					-- theme = "tokyonight",
-					theme = "kanagawa",
+					-- theme = "kanagawa",
+					theme = "nord",
 					component_separators = { left = "|", right = "|" },
 					section_separators = { left = "", right = "" },
 					disabled_filetypes = {
@@ -123,22 +124,7 @@ return {
 	{
 		"lukas-reineke/indent-blankline.nvim",
 		main = "ibl",
-		opts = {
-			exclude = {
-				filetypes = {
-					"help",
-					"alpha",
-					"dashboard",
-					"neo-tree",
-					"Trouble",
-					"lazy",
-					"mason",
-					"notify",
-					"toggleterm",
-				},
-				buftypes = { "terminal" },
-			},
-		},
+		event = { "BufReadPost", "BufNewFile" },
 		config = function()
 			require("ibl").setup({
 				indent = {
@@ -150,6 +136,20 @@ return {
 				},
 				scope = {
 					enabled = false,
+				},
+				exclude = {
+					filetypes = {
+						"help",
+						"alpha",
+						"dashboard",
+						"neo-tree",
+						"Trouble",
+						"lazy",
+						"mason",
+						"notify",
+						"toggleterm",
+					},
+					buftypes = { "terminal" },
 				},
 			})
 		end,
