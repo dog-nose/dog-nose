@@ -41,7 +41,7 @@ Use the first commit message (first line only) as the PR title.
 Create a body with this format:
 
 ```markdown
-## Summary
+## 概要
 - [bullet point from first commit subject]
 - [bullet point from second commit subject]
 - [etc. for all commits]
