@@ -1,4 +1,17 @@
 return {
+	-- lazydev.nvim
+	{
+		"folke/lazydev.nvim",
+		ft = "lua",
+		opts = {
+			library = {
+				{ path = "luvit-meta/library", words = { "vim%.uv" } },
+			},
+		},
+	},
+
+	-- vim.uv の型定義
+	{ "Bilal2453/luvit-meta", lazy = true },
 	-- 補完
 	{
 		"hrsh7th/nvim-cmp", --補完エンジン本体
@@ -69,7 +82,7 @@ return {
 	"williamboman/mason.nvim",
 	{
 		"williamboman/mason-lspconfig.nvim",
-		dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig" },
+		dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig", "folke/lazydev.nvim" },
 		config = function()
 			-- client, bufnrを引数に取るon_attach関数を定義
 			local on_attach = function(client, bufnr)
@@ -101,7 +114,16 @@ return {
 			-- Diagnosticsの表示設定
 			vim.diagnostic.config({
 				virtual_text = false, -- 行末にエラーテキストを表示しない（鬱陶しいため）
-				signs = true, -- サイドバーにエラーサインを表示
+				signs = {
+					-- サイドバーにエラーサインを表示（新しいAPI）
+					--  "", Warn = "", Hint = "󰌵", Info = "󰋽"
+					text = {
+						[vim.diagnostic.severity.ERROR] = "",
+						[vim.diagnostic.severity.WARN] = "",
+						[vim.diagnostic.severity.HINT] = "󰌵",
+						[vim.diagnostic.severity.INFO] = "󰋽",
+					},
+				},
 				underline = true, -- エラー箇所に下線を表示
 				update_in_insert = false, -- 挿入モード中は更新しない
 				severity_sort = true, -- 重要度順にソート
@@ -113,18 +135,21 @@ return {
 				},
 			})
 
-			-- Diagnosticsのサインアイコンを設定
-			-- numhlを削除することで行番号のハイライトを防ぐ
-			local signs = { Error = "", Warn = "", Hint = "H", Info = "󰋽" }
-			for type, icon in pairs(signs) do
-				local hl = "DiagnosticSign" .. type
-				vim.fn.sign_define(hl, { text = icon, texthl = hl })
-			end
-
 			require("mason").setup()
 			require("mason-lspconfig").setup({
 				ensure_installed = { "lua_ls" },
 			})
+
+			-- shellcheck などの非LSPツールを自動インストール
+			local mason_registry = require("mason-registry")
+			local ensure_installed_tools = { "shellcheck" }
+			for _, tool in ipairs(ensure_installed_tools) do
+				local ok, package = pcall(mason_registry.get_package, tool)
+				if ok and not package:is_installed() then
+					package:install()
+				end
+			end
+
 			local lspconfig = require("lspconfig")
 			-- サーバーごとの設定
 			local servers = {
@@ -144,7 +169,7 @@ return {
 						},
 					},
 				},
-				tsserver = {},
+				ts_ls = {},
 				pyright = {},
 			}
 
