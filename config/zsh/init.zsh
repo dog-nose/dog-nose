@@ -103,6 +103,7 @@ function remote-list() {
     fi
 }
 
+alias cc='VISUAL="nvim" claude'
 alias vim='nvim'
 alias lazy-vim='NVIM_APPNAME=nvim-lazy nvim'
 alias lvim='NVIM_APPNAME=nvim-lazy nvim'

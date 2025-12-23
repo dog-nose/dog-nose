@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: init update test clean backup docker-build docker-test health-check help
+.PHONY: init update test clean backup docker-build docker-test health-check help link-claude-commands
 
 # プラットフォーム検出
 UNAME_S := $(shell uname -s)
@@ -29,15 +29,16 @@ PACKAGE_MANAGER := $(detect_package_manager)
 # デフォルトターゲット
 help:
 	@echo "PC Setup Repository - Available Commands:"
-	@echo "  init         - 初期セットアップ（必要なツールのインストール、設定ファイルのリンク）"
-	@echo "  update       - 更新処理（oh-my-zsh、プラグイン、neovimの更新）"
-	@echo "  test         - 動作確認（zsh、neovim、LSP設定の確認）"
-	@echo "  clean        - 環境クリーンアップ（古いリンクや不要なファイルの削除）"
-	@echo "  backup       - 既存設定のバックアップ作成"
-	@echo "  health-check - 健全性チェック（各ツールのバージョン確認）"
-	@echo "  docker-build - Dockerイメージのビルド"
-	@echo "  docker-test  - Docker環境でのテスト実行"
-	@echo "  help         - このヘルプメッセージを表示"
+	@echo "  init                - 初期セットアップ（必要なツールのインストール、設定ファイルのリンク）"
+	@echo "  update              - 更新処理（oh-my-zsh、プラグイン、neovimの更新）"
+	@echo "  test                - 動作確認（zsh、neovim、LSP設定の確認）"
+	@echo "  clean               - 環境クリーンアップ（古いリンクや不要なファイルの削除）"
+	@echo "  backup              - 既存設定のバックアップ作成"
+	@echo "  health-check        - 健全性チェック（各ツールのバージョン確認）"
+	@echo "  link-claude-commands - Claude Codeコマンドのシンボリックリンク作成"
+	@echo "  docker-build        - Dockerイメージのビルド"
+	@echo "  docker-test         - Docker環境でのテスト実行"
+	@echo "  help                - このヘルプメッセージを表示"
 
 # 初期セットアップ
 init: backup
@@ -45,6 +46,7 @@ init: backup
 	@$(MAKE) install-tools
 	@$(MAKE) install-oh-my-zsh
 	@$(MAKE) link-configs
+	@$(MAKE) link-claude-commands
 	@$(MAKE) install-plugins
 	@echo "=== 初期セットアップ完了 ==="
 
@@ -52,28 +54,49 @@ init: backup
 install-tools:
 	@echo ">>> 必要なツールのインストール..."
 	@if [ "$(PACKAGE_MANAGER)" = "apt" ]; then \
-		sudo apt-get update && sudo apt-get install -y zsh git curl wget build-essential nodejs npm; \
+		echo "Ubuntu/Debian環境を検出しました"; \
+		sudo apt-get update; \
+		sudo apt-get install -y zsh git curl wget build-essential nodejs npm; \
+		sudo apt-get install -y ripgrep fd-find fzf python3 python3-pip unzip; \
+		echo ">>> neovimのインストール..."; \
 		curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz; \
 		sudo tar -C /opt -xzf nvim-linux64.tar.gz; \
 		sudo ln -sf /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim; \
 		rm -f nvim-linux64.tar.gz; \
+		echo ">>> fd-findのシンボリックリンク作成 (fd -> fdfind)..."; \
+		sudo ln -sf $$(which fdfind) /usr/local/bin/fd 2>/dev/null || true; \
+		echo ">>> ghqのインストール..."; \
 		curl -L https://github.com/x-motemen/ghq/releases/latest/download/ghq_linux_amd64.tar.gz | tar -C /tmp -xzf -; \
 		sudo mv /tmp/ghq_linux_amd64/ghq /usr/local/bin/ghq; \
 		sudo chmod +x /usr/local/bin/ghq; \
+		echo "✓ 必要なパッケージのインストールが完了しました"; \
 	elif [ "$(PACKAGE_MANAGER)" = "brew" ]; then \
+		echo "macOS環境を検出しました"; \
 		brew install zsh git neovim node ghq; \
+		brew install ripgrep fd fzf python3; \
+		echo "✓ 必要なパッケージのインストールが完了しました"; \
 	elif [ "$(PACKAGE_MANAGER)" = "yum" ]; then \
+		echo "RedHat/CentOS環境を検出しました"; \
 		sudo yum install -y zsh git curl wget gcc gcc-c++ make nodejs npm; \
+		sudo yum install -y python3 python3-pip unzip fzf; \
+		echo ">>> ripgrepのインストール..."; \
+		sudo yum-config-manager --add-repo=https://copr.fedorainfracloud.org/coprs/carlwgeorge/ripgrep/repo/epel-7/carlwgeorge-ripgrep-epel-7.repo; \
+		sudo yum install -y ripgrep; \
+		echo ">>> neovimのインストール..."; \
 		curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz; \
 		sudo tar -C /opt -xzf nvim-linux64.tar.gz; \
 		sudo ln -sf /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim; \
 		rm -f nvim-linux64.tar.gz; \
+		echo ">>> ghqのインストール..."; \
 		curl -L https://github.com/x-motemen/ghq/releases/latest/download/ghq_linux_amd64.tar.gz | tar -C /tmp -xzf -; \
 		sudo mv /tmp/ghq_linux_amd64/ghq /usr/local/bin/ghq; \
 		sudo chmod +x /usr/local/bin/ghq; \
+		echo "✓ 必要なパッケージのインストールが完了しました"; \
 	else \
 		echo "未サポートのパッケージマネージャーです: $(PACKAGE_MANAGER)"; \
-		echo "手動でzsh, git, neovim, node, ghqをインストールしてください"; \
+		echo "手動で以下のツールをインストールしてください:"; \
+		echo "  - zsh, git, neovim, node, ghq"; \
+		echo "  - ripgrep, fd, fzf, python3, unzip"; \
 		exit 1; \
 	fi
 
@@ -94,6 +117,13 @@ link-configs:
 		cp $(CURDIR)/template/default.zsh ~/.zshrc; \
 	fi
 	@echo "設定ファイルのリンクが完了しました"
+
+# Claude Codeコマンドのリンク
+link-claude-commands:
+	@echo ">>> Claude Code commands のリンク作成..."
+	@mkdir -p ~/.claude/commands
+	@ln -sf $(CURDIR)/.claude/commands/* ~/.claude/commands/
+	@echo "Claude Code commands のリンクが完了しました"
 
 # プラグインのインストール
 install-plugins:
@@ -221,8 +251,17 @@ health-check:
 	@echo "OS: $(UNAME_S)"
 	@echo "パッケージマネージャー: $(PACKAGE_MANAGER)"
 	@echo ""
-	@echo ">>> インストール済みツールの確認..."
+	@echo ">>> 基本ツールの確認..."
 	@for tool in zsh git nvim node ghq; do \
+		if command -v $$tool >/dev/null 2>&1; then \
+			echo "✓ $$tool: $$($$tool --version 2>/dev/null | head -1 || echo 'インストール済み')"; \
+		else \
+			echo "✗ $$tool: 未インストール"; \
+		fi; \
+	done
+	@echo ""
+	@echo ">>> Neovim関連ツールの確認..."
+	@for tool in rg fd fzf python3; do \
 		if command -v $$tool >/dev/null 2>&1; then \
 			echo "✓ $$tool: $$($$tool --version 2>/dev/null | head -1 || echo 'インストール済み')"; \
 		else \
@@ -235,6 +274,11 @@ health-check:
 		echo "✓ ~/.config -> $$(readlink ~/.config)"; \
 	else \
 		echo "✗ ~/.config が正しくリンクされていません"; \
+	fi
+	@if [ -d "$$HOME/.oh-my-zsh" ]; then \
+		echo "✓ oh-my-zsh: インストール済み"; \
+	else \
+		echo "✗ oh-my-zsh: 未インストール"; \
 	fi
 
 # Docker関連
