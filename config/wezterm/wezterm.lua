@@ -7,6 +7,9 @@ if wezterm.config_builder then
 	config = wezterm.config_builder()
 end
 
+config.initial_cols = 200
+config.initial_rows = 60
+
 config.automatically_reload_config = true
 config.window_background_opacity = 0.8
 config.macos_window_background_blur = 15
@@ -42,6 +45,18 @@ config.use_fancy_tab_bar = false
 config.window_frame = {
 	inactive_titlebar_bg = "none",
 	active_titlebar_bg = "none",
+
+	-- ボーダーの太さを設定（px）
+	border_left_width = "4pt",
+	border_right_width = "4pt",
+	border_bottom_height = "4pt",
+	border_top_height = "4pt",
+
+	-- ボーダーの色
+	border_left_color = "#88c0d0",
+	border_right_color = "#88c0d0",
+	border_bottom_color = "#88c0d0",
+	border_top_color = "#88c0d0",
 }
 
 -- タブバーのカラー設定（Nordテーマに合わせる）
