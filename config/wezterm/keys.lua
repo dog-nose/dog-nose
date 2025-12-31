@@ -1,9 +1,10 @@
 local wezterm = require("wezterm")
-
 local M = {}
 
 function M.setup(config)
 	config.keys = {
+		-- Shift+Enter で改行コードを送信
+		{ key = "Enter", mods = "SHIFT", action = wezterm.action({ SendString = "\x1b\r" }) },
 		-- Cmd+T で新しいタブをHOMEディレクトリで開く
 		{
 			key = "t",
