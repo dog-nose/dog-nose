@@ -3,14 +3,14 @@ function _get_prompt_pwd() {
     local current=$(pwd | sed -e "s:^$HOME:~:")
     local github_root="${GHQ_ROOT}/github.com"
     if [[ "$current" =~ ^$github_root ]]; then
-        echo $current | perl -pe "s:^$github_root.*?\/: :"
+        echo $current | perl -pe "s:^$github_root.*?\/: :"
         return
     fi
     if [[ "$current" =~ ^$GHQ_ROOT ]]; then
         echo $current | perl -pe "s:^$GHQ_ROOT\/:󰊢 :"
         return
     fi
-    echo $current | sed -e "s:^~::"
+    echo $current | sed -e "s:^~::"
 }
 
 # fzf history selection
