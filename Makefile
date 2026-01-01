@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: setup help
+.PHONY: setup help verify
 
 # デフォルトターゲット
 .DEFAULT_GOAL := setup
@@ -7,8 +7,9 @@ SHELL := /bin/bash
 # ヘルプ
 help:
 	@echo "利用可能なコマンド:"
-	@echo "  make setup - 初期セットアップを実行"
-	@echo "  make help  - このヘルプを表示"
+	@echo "  make setup  - 初期セットアップを実行"
+	@echo "  make verify - セットアップの検証を実行"
+	@echo "  make help   - このヘルプを表示"
 
 # セットアップ
 setup:
@@ -17,6 +18,12 @@ setup:
 	@$(MAKE) setup-zshrc
 	@$(MAKE) setup-gitconfig
 	@echo "=== セットアップが完了しました ==="
+	@echo ""
+	@echo "セットアップの検証を実行するには: make verify"
+
+# セットアップの検証
+verify:
+	@bash tests/verify-setup.sh
 
 # configディレクトリのシンボリックリンク作成
 link-config:
