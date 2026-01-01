@@ -35,19 +35,38 @@ link-config:
 # .zshrcの作成
 setup-zshrc:
 	@echo ">>> .zshrcの設定..."
-	@if [ ! -f "$$HOME/.zshrc" ]; then \
-		echo "# Load custom zsh configuration" > "$$HOME/.zshrc"; \
-		echo "source ~/.config/zsh/init.zsh" >> "$$HOME/.zshrc"; \
-		echo "✓ ~/.zshrc を作成しました"; \
+	@if [ -f "$$HOME/.zshrc" ]; then \
+		echo "既存の ~/.zshrc が見つかりました"; \
+		read -p "バックアップして新規作成しますか？ (b: バックアップ, d: 削除, s: スキップ) [b/d/s]: " answer; \
+		case "$$answer" in \
+			b|B) \
+				cp "$$HOME/.zshrc" "$$HOME/.zshrc.backup.$$(date +%Y%m%d_%H%M%S)"; \
+				echo "✓ バックアップを作成しました"; \
+				echo "# Load zsh configuration files" > "$$HOME/.zshrc"; \
+				echo "for config_file in ~/.config/zsh/[0-9][0-9]-*.zsh; do" >> "$$HOME/.zshrc"; \
+				echo "    source \"\$$config_file\"" >> "$$HOME/.zshrc"; \
+				echo "done" >> "$$HOME/.zshrc"; \
+				echo "✓ ~/.zshrc を新規作成しました"; \
+				;; \
+			d|D) \
+				rm "$$HOME/.zshrc"; \
+				echo "✓ 既存の ~/.zshrc を削除しました"; \
+				echo "# Load zsh configuration files" > "$$HOME/.zshrc"; \
+				echo "for config_file in ~/.config/zsh/[0-9][0-9]-*.zsh; do" >> "$$HOME/.zshrc"; \
+				echo "    source \"\$$config_file\"" >> "$$HOME/.zshrc"; \
+				echo "done" >> "$$HOME/.zshrc"; \
+				echo "✓ ~/.zshrc を新規作成しました"; \
+				;; \
+			s|S|*) \
+				echo "✓ ~/.zshrc のセットアップをスキップしました"; \
+				;; \
+		esac \
 	else \
-		if ! grep -q "source ~/.config/zsh/init.zsh" "$$HOME/.zshrc"; then \
-			echo "" >> "$$HOME/.zshrc"; \
-			echo "# Load custom zsh configuration" >> "$$HOME/.zshrc"; \
-			echo "source ~/.config/zsh/init.zsh" >> "$$HOME/.zshrc"; \
-			echo "✓ ~/.zshrc に設定を追加しました"; \
-		else \
-			echo "✓ ~/.zshrc は既に設定されています"; \
-		fi \
+		echo "# Load zsh configuration files" > "$$HOME/.zshrc"; \
+		echo "for config_file in ~/.config/zsh/[0-9][0-9]-*.zsh; do" >> "$$HOME/.zshrc"; \
+		echo "    source \"\$$config_file\"" >> "$$HOME/.zshrc"; \
+		echo "done" >> "$$HOME/.zshrc"; \
+		echo "✓ ~/.zshrc を作成しました"; \
 	fi
 
 # .gitconfigの作成
