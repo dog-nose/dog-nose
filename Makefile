@@ -93,7 +93,7 @@ setup-gitconfig:
 				echo "    email = $$git_email" >> "$$HOME/.gitconfig"; \
 				echo "" >> "$$HOME/.gitconfig"; \
 				echo "[include]" >> "$$HOME/.gitconfig"; \
-				echo "    path = ~/.config/git/.gitconfig" >> "$$HOME/.gitconfig"; \
+				echo "    path = ~/.config/git/00-common.gitconfig" >> "$$HOME/.gitconfig"; \
 				echo "✓ ~/.gitconfig を新規作成しました"; \
 				;; \
 			d|D) \
@@ -106,7 +106,7 @@ setup-gitconfig:
 				echo "    email = $$git_email" >> "$$HOME/.gitconfig"; \
 				echo "" >> "$$HOME/.gitconfig"; \
 				echo "[include]" >> "$$HOME/.gitconfig"; \
-				echo "    path = ~/.config/git/.gitconfig" >> "$$HOME/.gitconfig"; \
+				echo "    path = ~/.config/git/00-common.gitconfig" >> "$$HOME/.gitconfig"; \
 				echo "✓ ~/.gitconfig を新規作成しました"; \
 				;; \
 			s|S|*) \
@@ -115,7 +115,7 @@ setup-gitconfig:
 		esac \
 	else \
 		echo "[include]" >> "$$HOME/.gitconfig"; \
-		echo "    path = ~/.config/git/.gitconfig" >> "$$HOME/.gitconfig"; \
+		echo "    path = ~/.config/git/00-common.gitconfig" >> "$$HOME/.gitconfig"; \
 		echo "" >> "$$HOME/.gitconfig"; \
 		read -p "Git ユーザー名を入力してください: " git_name; \
 		read -p "Git メールアドレスを入力してください: " git_email; \

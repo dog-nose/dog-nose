@@ -96,14 +96,14 @@ check_gitconfig() {
         print_success "~/.gitconfig が存在します"
 
         # includeパスのチェック
-        if grep -q "path = ~/.config/git/.gitconfig" "$HOME/.gitconfig" || \
-           grep -q 'path = "~/.config/git/.gitconfig"' "$HOME/.gitconfig"; then
+        if grep -q "path = ~/.config/git/00-common.gitconfig" "$HOME/.gitconfig" || \
+           grep -q 'path = "~/.config/git/00-common.gitconfig"' "$HOME/.gitconfig"; then
             print_success "~/.gitconfig に正しいincludeパスが設定されています"
         else
             print_warning "~/.gitconfig にincludeパスが見つかりません"
             print_info "以下の内容が必要です："
             print_info "  [include]"
-            print_info "      path = ~/.config/git/.gitconfig"
+            print_info "      path = ~/.config/git/00-common.gitconfig"
         fi
 
         # user設定のチェック
@@ -123,7 +123,7 @@ check_config_files() {
 
     local config_files=(
         "$REPO_ROOT/config/zsh"
-        "$REPO_ROOT/config/git/.gitconfig"
+        "$REPO_ROOT/config/git/00-common.gitconfig"
         "$REPO_ROOT/config/nvim-lazy"
         "$REPO_ROOT/config/nvim-my"
     )
