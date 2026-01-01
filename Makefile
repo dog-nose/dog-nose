@@ -72,27 +72,48 @@ setup-zshrc:
 # .gitconfigの作成
 setup-gitconfig:
 	@echo ">>> Gitの設定..."
-	@if [ ! -f "$$HOME/.gitconfig" ]; then \
-		echo "[include]" > "$$HOME/.gitconfig"; \
-		echo "    path = ~/.config/git/.gitconfig" >> "$$HOME/.gitconfig"; \
-		echo "✓ ~/.gitconfig を作成しました"; \
+	@if [ -f "$$HOME/.gitconfig" ]; then \
+		echo "既存の ~/.gitconfig が見つかりました"; \
+		read -p "バックアップして新規作成しますか？ (b: バックアップ, d: 削除, s: スキップ) [b/d/s]: " answer; \
+		case "$$answer" in \
+			b|B) \
+				cp "$$HOME/.gitconfig" "$$HOME/.gitconfig.backup.$$(date +%Y%m%d_%H%M%S)"; \
+				echo "✓ バックアップを作成しました"; \
+				read -p "Git ユーザー名を入力してください: " git_name; \
+				read -p "Git メールアドレスを入力してください: " git_email; \
+				echo "[user]" > "$$HOME/.gitconfig"; \
+				echo "    name = $$git_name" >> "$$HOME/.gitconfig"; \
+				echo "    email = $$git_email" >> "$$HOME/.gitconfig"; \
+				echo "" >> "$$HOME/.gitconfig"; \
+				echo "[include]" >> "$$HOME/.gitconfig"; \
+				echo "    path = ~/.config/git/.gitconfig" >> "$$HOME/.gitconfig"; \
+				echo "✓ ~/.gitconfig を新規作成しました"; \
+				;; \
+			d|D) \
+				rm "$$HOME/.gitconfig"; \
+				echo "✓ 既存の ~/.gitconfig を削除しました"; \
+				read -p "Git ユーザー名を入力してください: " git_name; \
+				read -p "Git メールアドレスを入力してください: " git_email; \
+				echo "[user]" > "$$HOME/.gitconfig"; \
+				echo "    name = $$git_name" >> "$$HOME/.gitconfig"; \
+				echo "    email = $$git_email" >> "$$HOME/.gitconfig"; \
+				echo "" >> "$$HOME/.gitconfig"; \
+				echo "[include]" >> "$$HOME/.gitconfig"; \
+				echo "    path = ~/.config/git/.gitconfig" >> "$$HOME/.gitconfig"; \
+				echo "✓ ~/.gitconfig を新規作成しました"; \
+				;; \
+			s|S|*) \
+				echo "✓ ~/.gitconfig のセットアップをスキップしました"; \
+				;; \
+		esac \
 	else \
-		if ! grep -q "path = ~/.config/git/.gitconfig" "$$HOME/.gitconfig"; then \
-			echo "" >> "$$HOME/.gitconfig"; \
-			echo "[include]" >> "$$HOME/.gitconfig"; \
-			echo "    path = ~/.config/git/.gitconfig" >> "$$HOME/.gitconfig"; \
-			echo "✓ ~/.gitconfig に設定を追加しました"; \
-		else \
-			echo "✓ ~/.gitconfig は既に設定されています"; \
-		fi \
-	fi
-	@if [ ! -f "$$HOME/.config/git/local.gitconfig" ]; then \
+		echo "[include]" >> "$$HOME/.gitconfig"; \
+		echo "    path = ~/.config/git/.gitconfig" >> "$$HOME/.gitconfig"; \
+		echo "" >> "$$HOME/.gitconfig"; \
 		read -p "Git ユーザー名を入力してください: " git_name; \
 		read -p "Git メールアドレスを入力してください: " git_email; \
-		echo "[user]" > "$$HOME/.config/git/local.gitconfig"; \
-		echo "    name = $$git_name" >> "$$HOME/.config/git/local.gitconfig"; \
-		echo "    email = $$git_email" >> "$$HOME/.config/git/local.gitconfig"; \
-		echo "✓ Git ユーザー情報を設定しました"; \
-	else \
-		echo "✓ Git ユーザー情報は既に設定されています"; \
+		echo "[user]" > "$$HOME/.gitconfig"; \
+		echo "    name = $$git_name" >> "$$HOME/.gitconfig"; \
+		echo "    email = $$git_email" >> "$$HOME/.gitconfig"; \
+		echo "✓ ~/.gitconfig を作成しました"; \
 	fi
