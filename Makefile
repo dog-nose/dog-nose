@@ -1,291 +1,126 @@
 SHELL := /bin/bash
-.PHONY: init update test clean backup docker-build docker-test health-check help link-claude-commands
-
-# プラットフォーム検出
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Linux)
-	DISTRO := $(shell lsb_release -si 2>/dev/null || echo "Unknown")
-endif
-
-# パッケージマネージャー検出
-define detect_package_manager
-	$(shell \
-		if command -v apt-get >/dev/null 2>&1; then \
-			echo "apt"; \
-		elif command -v brew >/dev/null 2>&1; then \
-			echo "brew"; \
-		elif command -v yum >/dev/null 2>&1; then \
-			echo "yum"; \
-		elif command -v pacman >/dev/null 2>&1; then \
-			echo "pacman"; \
-		else \
-			echo "unknown"; \
-		fi \
-	)
-endef
-
-PACKAGE_MANAGER := $(detect_package_manager)
+.PHONY: setup help verify
 
 # デフォルトターゲット
+.DEFAULT_GOAL := setup
+
+# ヘルプ
 help:
-	@echo "PC Setup Repository - Available Commands:"
-	@echo "  init                - 初期セットアップ（必要なツールのインストール、設定ファイルのリンク）"
-	@echo "  update              - 更新処理（oh-my-zsh、プラグイン、neovimの更新）"
-	@echo "  test                - 動作確認（zsh、neovim、LSP設定の確認）"
-	@echo "  clean               - 環境クリーンアップ（古いリンクや不要なファイルの削除）"
-	@echo "  backup              - 既存設定のバックアップ作成"
-	@echo "  health-check        - 健全性チェック（各ツールのバージョン確認）"
-	@echo "  link-claude-commands - Claude Codeコマンドのシンボリックリンク作成"
-	@echo "  docker-build        - Dockerイメージのビルド"
-	@echo "  docker-test         - Docker環境でのテスト実行"
-	@echo "  help                - このヘルプメッセージを表示"
+	@echo "利用可能なコマンド:"
+	@echo "  make setup  - 初期セットアップを実行"
+	@echo "  make verify - セットアップの検証を実行"
+	@echo "  make help   - このヘルプを表示"
 
-# 初期セットアップ
-init: backup
-	@echo "=== PC Setup Repository 初期セットアップ開始 ==="
-	@$(MAKE) install-tools
-	@$(MAKE) install-oh-my-zsh
-	@$(MAKE) link-configs
-	@$(MAKE) link-claude-commands
-	@$(MAKE) install-plugins
-	@echo "=== 初期セットアップ完了 ==="
+# セットアップ
+setup:
+	@echo "=== セットアップを開始します ==="
+	@$(MAKE) link-config
+	@$(MAKE) setup-zshrc
+	@$(MAKE) setup-gitconfig
+	@echo "=== セットアップが完了しました ==="
+	@echo ""
+	@echo "セットアップの検証を実行するには: make verify"
 
-# 必要なツールのインストール
-install-tools:
-	@echo ">>> 必要なツールのインストール..."
-	@if [ "$(PACKAGE_MANAGER)" = "apt" ]; then \
-		echo "Ubuntu/Debian環境を検出しました"; \
-		sudo apt-get update; \
-		sudo apt-get install -y zsh git curl wget build-essential nodejs npm; \
-		sudo apt-get install -y ripgrep fd-find fzf python3 python3-pip unzip; \
-		echo ">>> neovimのインストール..."; \
-		curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz; \
-		sudo tar -C /opt -xzf nvim-linux64.tar.gz; \
-		sudo ln -sf /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim; \
-		rm -f nvim-linux64.tar.gz; \
-		echo ">>> fd-findのシンボリックリンク作成 (fd -> fdfind)..."; \
-		sudo ln -sf $$(which fdfind) /usr/local/bin/fd 2>/dev/null || true; \
-		echo ">>> ghqのインストール..."; \
-		curl -L https://github.com/x-motemen/ghq/releases/latest/download/ghq_linux_amd64.tar.gz | tar -C /tmp -xzf -; \
-		sudo mv /tmp/ghq_linux_amd64/ghq /usr/local/bin/ghq; \
-		sudo chmod +x /usr/local/bin/ghq; \
-		echo "✓ 必要なパッケージのインストールが完了しました"; \
-	elif [ "$(PACKAGE_MANAGER)" = "brew" ]; then \
-		echo "macOS環境を検出しました"; \
-		brew install zsh git neovim node ghq; \
-		brew install ripgrep fd fzf python3; \
-		echo "✓ 必要なパッケージのインストールが完了しました"; \
-	elif [ "$(PACKAGE_MANAGER)" = "yum" ]; then \
-		echo "RedHat/CentOS環境を検出しました"; \
-		sudo yum install -y zsh git curl wget gcc gcc-c++ make nodejs npm; \
-		sudo yum install -y python3 python3-pip unzip fzf; \
-		echo ">>> ripgrepのインストール..."; \
-		sudo yum-config-manager --add-repo=https://copr.fedorainfracloud.org/coprs/carlwgeorge/ripgrep/repo/epel-7/carlwgeorge-ripgrep-epel-7.repo; \
-		sudo yum install -y ripgrep; \
-		echo ">>> neovimのインストール..."; \
-		curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz; \
-		sudo tar -C /opt -xzf nvim-linux64.tar.gz; \
-		sudo ln -sf /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim; \
-		rm -f nvim-linux64.tar.gz; \
-		echo ">>> ghqのインストール..."; \
-		curl -L https://github.com/x-motemen/ghq/releases/latest/download/ghq_linux_amd64.tar.gz | tar -C /tmp -xzf -; \
-		sudo mv /tmp/ghq_linux_amd64/ghq /usr/local/bin/ghq; \
-		sudo chmod +x /usr/local/bin/ghq; \
-		echo "✓ 必要なパッケージのインストールが完了しました"; \
-	else \
-		echo "未サポートのパッケージマネージャーです: $(PACKAGE_MANAGER)"; \
-		echo "手動で以下のツールをインストールしてください:"; \
-		echo "  - zsh, git, neovim, node, ghq"; \
-		echo "  - ripgrep, fd, fzf, python3, unzip"; \
-		exit 1; \
-	fi
+# セットアップの検証
+verify:
+	@bash tests/verify-setup.sh
 
-# oh-my-zshのインストール
-install-oh-my-zsh:
-	@echo ">>> oh-my-zshのインストール..."
-	@if [ ! -d "$$HOME/.oh-my-zsh" ]; then \
-		sh -c "$$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended; \
-	else \
-		echo "oh-my-zsh は既にインストールされています"; \
-	fi
-
-# 設定ファイルのリンク
-link-configs:
-	@echo ">>> 設定ファイルのリンク作成..."
-	@ln -sf $(CURDIR)/config ~/.config
-	@if [ -f "$(CURDIR)/template/default.zsh" ]; then \
-		cp $(CURDIR)/template/default.zsh ~/.zshrc; \
-	fi
-	@echo "設定ファイルのリンクが完了しました"
-
-# Claude Codeコマンドのリンク
-link-claude-commands:
-	@echo ">>> Claude Code commands のリンク作成..."
-	@mkdir -p ~/.claude/commands
-	@ln -sf $(CURDIR)/.claude/commands/* ~/.claude/commands/
-	@echo "Claude Code commands のリンクが完了しました"
-
-# プラグインのインストール
-install-plugins:
-	@echo ">>> zshプラグインのインストール..."
-	@mkdir -p ~/.oh-my-zsh/custom/plugins
-	@if [ ! -d "~/.oh-my-zsh/custom/plugins/zsh-completions" ]; then \
-		git clone https://github.com/zsh-users/zsh-completions ~/.oh-my-zsh/custom/plugins/zsh-completions; \
-	fi
-	@if [ ! -d "~/.oh-my-zsh/custom/plugins/zsh-autosuggestions" ]; then \
-		git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions; \
-	fi
-	@if [ ! -d "~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" ]; then \
-		git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting; \
-	fi
-
-# 更新処理
-update:
-	@echo "=== 更新処理開始 ==="
-	@$(MAKE) update-oh-my-zsh
-	@$(MAKE) update-plugins
-	@$(MAKE) update-neovim
-	@$(MAKE) link-configs
-	@echo "=== 更新処理完了 ==="
-
-# oh-my-zshの更新
-update-oh-my-zsh:
-	@echo ">>> oh-my-zshの更新..."
-	@if [ -d "$$HOME/.oh-my-zsh" ]; then \
-		cd ~/.oh-my-zsh && git pull; \
-	fi
-
-# プラグインの更新
-update-plugins:
-	@echo ">>> プラグインの更新..."
-	@for plugin in zsh-completions zsh-autosuggestions zsh-syntax-highlighting; do \
-		if [ -d "$$HOME/.oh-my-zsh/custom/plugins/$$plugin" ]; then \
-			cd "$$HOME/.oh-my-zsh/custom/plugins/$$plugin" && git pull; \
-		fi; \
-	done
-
-# neovimの更新
-update-neovim:
-	@echo ">>> neovimの更新確認..."
-	@if command -v nvim >/dev/null 2>&1; then \
-		echo "現在のneovimバージョン: $$(nvim --version | head -1)"; \
-		echo "最新版の確認は手動で行ってください"; \
-	fi
-
-# 動作確認テスト
-test:
-	@echo "=== 動作確認テスト開始 ==="
-	@$(MAKE) test-zsh
-	@$(MAKE) test-neovim
-	@$(MAKE) test-configs
-	@echo "=== 動作確認テスト完了 ==="
-
-# zshの動作確認
-test-zsh:
-	@echo ">>> zshの動作確認..."
-	@if command -v zsh >/dev/null 2>&1; then \
-		echo "✓ zsh is installed: $$(zsh --version)"; \
-	else \
-		echo "✗ zsh is not installed"; \
-		exit 1; \
-	fi
-	@if [ -d "$$HOME/.oh-my-zsh" ]; then \
-		echo "✓ oh-my-zsh is installed"; \
-	else \
-		echo "✗ oh-my-zsh is not installed"; \
-		exit 1; \
-	fi
-
-# neovimの動作確認
-test-neovim:
-	@echo ">>> neovimの動作確認..."
-	@if command -v nvim >/dev/null 2>&1; then \
-		echo "✓ neovim is installed: $$(nvim --version | head -1)"; \
-		echo "✓ neovim起動テスト..."; \
-		timeout 5 nvim --headless -c 'echo "neovim OK"' -c 'qall!' || echo "neovim起動確認完了"; \
-	else \
-		echo "✗ neovim is not installed"; \
-		exit 1; \
-	fi
-
-# 設定ファイルの確認
-test-configs:
-	@echo ">>> 設定ファイルの確認..."
-	@if [ -L "$$HOME/.config" ]; then \
-		echo "✓ ~/.config is linked to $(CURDIR)/config"; \
-	else \
-		echo "✗ ~/.config is not properly linked"; \
-		exit 1; \
-	fi
-	@if [ -f "$$HOME/.zshrc" ]; then \
-		echo "✓ ~/.zshrc exists"; \
-	else \
-		echo "✗ ~/.zshrc does not exist"; \
-		exit 1; \
-	fi
-
-# 環境クリーンアップ
-clean:
-	@echo ">>> 環境クリーンアップ..."
-	@if [ -L "$$HOME/.config" ]; then \
-		rm -f ~/.config; \
-		echo "✓ ~/.config リンクを削除しました"; \
-	fi
-	@echo "クリーンアップ完了"
-
-# バックアップ作成
-backup:
-	@echo ">>> 既存設定のバックアップ作成..."
-	@if [ -f "$$HOME/.zshrc" ] && [ ! -L "$$HOME/.zshrc" ]; then \
-		cp ~/.zshrc ~/.zshrc.backup.$$(date +%Y%m%d_%H%M%S); \
-		echo "✓ ~/.zshrc をバックアップしました"; \
-	fi
+# configディレクトリのシンボリックリンク作成
+link-config:
+	@echo ">>> configディレクトリのシンボリックリンクを作成..."
 	@if [ -e "$$HOME/.config" ] && [ ! -L "$$HOME/.config" ]; then \
-		mv ~/.config ~/.config.backup.$$(date +%Y%m%d_%H%M%S); \
-		echo "✓ ~/.config をバックアップしました"; \
+		echo "既存の ~/.config をバックアップしています..."; \
+		mv "$$HOME/.config" "$$HOME/.config.backup.$$(date +%Y%m%d_%H%M%S)"; \
 	fi
-
-# 健全性チェック
-health-check:
-	@echo "=== 健全性チェック ==="
-	@echo "OS: $(UNAME_S)"
-	@echo "パッケージマネージャー: $(PACKAGE_MANAGER)"
-	@echo ""
-	@echo ">>> 基本ツールの確認..."
-	@for tool in zsh git nvim node ghq; do \
-		if command -v $$tool >/dev/null 2>&1; then \
-			echo "✓ $$tool: $$($$tool --version 2>/dev/null | head -1 || echo 'インストール済み')"; \
-		else \
-			echo "✗ $$tool: 未インストール"; \
-		fi; \
-	done
-	@echo ""
-	@echo ">>> Neovim関連ツールの確認..."
-	@for tool in rg fd fzf python3; do \
-		if command -v $$tool >/dev/null 2>&1; then \
-			echo "✓ $$tool: $$($$tool --version 2>/dev/null | head -1 || echo 'インストール済み')"; \
-		else \
-			echo "✗ $$tool: 未インストール"; \
-		fi; \
-	done
-	@echo ""
-	@echo ">>> 設定ファイルの確認..."
-	@if [ -L "$$HOME/.config" ]; then \
-		echo "✓ ~/.config -> $$(readlink ~/.config)"; \
+	@if [ ! -L "$$HOME/.config" ]; then \
+		ln -sf "$(CURDIR)/config" "$$HOME/.config"; \
+		echo "✓ ~/.config -> $(CURDIR)/config"; \
 	else \
-		echo "✗ ~/.config が正しくリンクされていません"; \
+		echo "✓ ~/.config は既にリンクされています"; \
 	fi
-	@if [ -d "$$HOME/.oh-my-zsh" ]; then \
-		echo "✓ oh-my-zsh: インストール済み"; \
+
+# .zshrcの作成
+setup-zshrc:
+	@echo ">>> .zshrcの設定..."
+	@if [ -f "$$HOME/.zshrc" ]; then \
+		echo "既存の ~/.zshrc が見つかりました"; \
+		read -p "バックアップして新規作成しますか？ (b: バックアップ, d: 削除, s: スキップ) [b/d/s]: " answer; \
+		case "$$answer" in \
+			b|B) \
+				cp "$$HOME/.zshrc" "$$HOME/.zshrc.backup.$$(date +%Y%m%d_%H%M%S)"; \
+				echo "✓ バックアップを作成しました"; \
+				echo "# Load zsh configuration files" > "$$HOME/.zshrc"; \
+				echo "for config_file in ~/.config/zsh/[0-9][0-9]-*.zsh; do" >> "$$HOME/.zshrc"; \
+				echo "    source \"\$$config_file\"" >> "$$HOME/.zshrc"; \
+				echo "done" >> "$$HOME/.zshrc"; \
+				echo "✓ ~/.zshrc を新規作成しました"; \
+				;; \
+			d|D) \
+				rm "$$HOME/.zshrc"; \
+				echo "✓ 既存の ~/.zshrc を削除しました"; \
+				echo "# Load zsh configuration files" > "$$HOME/.zshrc"; \
+				echo "for config_file in ~/.config/zsh/[0-9][0-9]-*.zsh; do" >> "$$HOME/.zshrc"; \
+				echo "    source \"\$$config_file\"" >> "$$HOME/.zshrc"; \
+				echo "done" >> "$$HOME/.zshrc"; \
+				echo "✓ ~/.zshrc を新規作成しました"; \
+				;; \
+			s|S|*) \
+				echo "✓ ~/.zshrc のセットアップをスキップしました"; \
+				;; \
+		esac \
 	else \
-		echo "✗ oh-my-zsh: 未インストール"; \
+		echo "# Load zsh configuration files" > "$$HOME/.zshrc"; \
+		echo "for config_file in ~/.config/zsh/[0-9][0-9]-*.zsh; do" >> "$$HOME/.zshrc"; \
+		echo "    source \"\$$config_file\"" >> "$$HOME/.zshrc"; \
+		echo "done" >> "$$HOME/.zshrc"; \
+		echo "✓ ~/.zshrc を作成しました"; \
 	fi
 
-# Docker関連
-docker-build:
-	@echo ">>> Dockerイメージをビルド中..."
-	@docker build -t dotfiles-ubuntu .
-
-docker-test:
-	@echo ">>> Docker環境でテスト実行中..."
-	@docker run --rm -it dotfiles-ubuntu /bin/bash -c "make test"
+# .gitconfigの作成
+setup-gitconfig:
+	@echo ">>> Gitの設定..."
+	@if [ -f "$$HOME/.gitconfig" ]; then \
+		echo "既存の ~/.gitconfig が見つかりました"; \
+		read -p "バックアップして新規作成しますか？ (b: バックアップ, d: 削除, s: スキップ) [b/d/s]: " answer; \
+		case "$$answer" in \
+			b|B) \
+				cp "$$HOME/.gitconfig" "$$HOME/.gitconfig.backup.$$(date +%Y%m%d_%H%M%S)"; \
+				echo "✓ バックアップを作成しました"; \
+				read -p "Git ユーザー名を入力してください: " git_name; \
+				read -p "Git メールアドレスを入力してください: " git_email; \
+				echo "[user]" > "$$HOME/.gitconfig"; \
+				echo "    name = $$git_name" >> "$$HOME/.gitconfig"; \
+				echo "    email = $$git_email" >> "$$HOME/.gitconfig"; \
+				echo "" >> "$$HOME/.gitconfig"; \
+				echo "[include]" >> "$$HOME/.gitconfig"; \
+				echo "    path = ~/.config/git/00-common.gitconfig" >> "$$HOME/.gitconfig"; \
+				echo "✓ ~/.gitconfig を新規作成しました"; \
+				;; \
+			d|D) \
+				rm "$$HOME/.gitconfig"; \
+				echo "✓ 既存の ~/.gitconfig を削除しました"; \
+				read -p "Git ユーザー名を入力してください: " git_name; \
+				read -p "Git メールアドレスを入力してください: " git_email; \
+				echo "[user]" > "$$HOME/.gitconfig"; \
+				echo "    name = $$git_name" >> "$$HOME/.gitconfig"; \
+				echo "    email = $$git_email" >> "$$HOME/.gitconfig"; \
+				echo "" >> "$$HOME/.gitconfig"; \
+				echo "[include]" >> "$$HOME/.gitconfig"; \
+				echo "    path = ~/.config/git/00-common.gitconfig" >> "$$HOME/.gitconfig"; \
+				echo "✓ ~/.gitconfig を新規作成しました"; \
+				;; \
+			s|S|*) \
+				echo "✓ ~/.gitconfig のセットアップをスキップしました"; \
+				;; \
+		esac \
+	else \
+		echo "[include]" >> "$$HOME/.gitconfig"; \
+		echo "    path = ~/.config/git/00-common.gitconfig" >> "$$HOME/.gitconfig"; \
+		echo "" >> "$$HOME/.gitconfig"; \
+		read -p "Git ユーザー名を入力してください: " git_name; \
+		read -p "Git メールアドレスを入力してください: " git_email; \
+		echo "[user]" > "$$HOME/.gitconfig"; \
+		echo "    name = $$git_name" >> "$$HOME/.gitconfig"; \
+		echo "    email = $$git_email" >> "$$HOME/.gitconfig"; \
+		echo "✓ ~/.gitconfig を作成しました"; \
+	fi
